@@ -1,4 +1,6 @@
-﻿#include<vector>
+﻿
+#include<iterator>
+#include<vector>
 #include<string>
 #include<iostream>
 #include<list>
@@ -25,7 +27,6 @@ OutputIterator filter_t(InputIterator first, InputIterator last, OutputIterator 
 		cout << "found value:" << *first << endl;
 		*at++ = *first++;
 	}
-
 	return at;
 }
 
@@ -48,21 +49,25 @@ bool pred(const int a, const int b) {
 }
 
 
+
 int main() {
 	int ary[8] = {12,8,43,0,6,21,3,7 };
 	vector<int> vec(ary, ary +8);
 
 	int ary2[8];
 	vector<int> vec2(8);
-	cout << "filtering_point integer array for values less than 8\n";
-	filter_t2(ary, ary + 8, ary2, 8, pred);
+	//函数指针做法
+	//cout << "filtering_point integer array for values less than 8\n";
+	//filter_t2(ary, ary + 8, ary2, 8, pred);
 
+	//利用functional 库中的  templa function object 做法
 	cout << "filtering integer array for values less than 8\n";
 	filter_t(ary, ary + 8, ary2, 8, less<int>());
 
 
 	cout << "filtering integer vector for values greater than 8\n";
-	filter_t(vec.begin(),vec.end(),vec2.begin(),8,greater<int>());
+	//filter_t(vec.begin(),vec.end(),vec2.begin(),8,greater<int>());
+	filter_t(vec.begin(), vec.end(),back_inserter(vec2), 8, greater<int>());
 
 	//在查找前先经过greater<int>()  对象排序(大->小)
 	//binary_search(vec.begin(),vec.end(),10,greater<int>()); 
@@ -73,6 +78,5 @@ int main() {
 		//cout << *iter << " ";
 	}
 	
-
 	return 0;
 }
