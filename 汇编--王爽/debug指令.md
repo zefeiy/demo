@@ -51,7 +51,7 @@
     pop 指令   pop bx  栈顶数据弹出赋给 bx寄存器，栈顶指针sp移动 sp = sp+2
 	
 	
-	
+	jcxz指令 ->>条件短转移指令  jcxz 标号(如果(cx) == 0 ,转到标号处执行)
 	
 	loop指令  loop指令配合 ： mov ，ax，10  \n s：（指令） 使用,
             如：loop s 时 会检查 ax寄存器值是否为0 如果为为0 继续向下执行，否则，跳到 s 执行指令
@@ -64,6 +64,20 @@
 	div 指令，div 除数，被除数默认存放在ax或  dx和ax中（即有2个字大小的被除数，和四个字大小的被除数）
                结果：如果除数为一个字，则al存储商，ah存储余数
                  若除数为2个字 ax存储商 dx 存储余数
+				 
+	ret 指令  使用栈中数据修改IP内容实现近转移 也就是段内转移
+	
+	retf 指令  使用栈中数据修改 cs和ip内容，实现远转移，段间转移
+				cpu执行retf指令时 相当于(1.pop IP 2.pop CS)
+				
+	call 指令   执行跳转的同时要再栈中保存当前上下文，即保存现场
+				call 标号->>近转移(1.PUSH IP
+									2.jmp near ptr 标号)
+				call fat ptr 标号 ->>远转移 (1. push CS 2.push IP 3.jmp far ptr 标号)
+				
+###  操作符
+
+		offset 标号 取得某个标号的偏移量
 	
 	
 
