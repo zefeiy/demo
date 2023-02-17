@@ -2,7 +2,9 @@
 #include"lst_timer.h"
     
 void sort_timer_lst::add_timer( util_timer* timer ) {
+    EMlog(LOGLEVEL_DEBUG, "===========adding timer.=============\n");
     if( !timer ) {
+        EMlog(LOGLEVEL_WARN ,"===========timer null.=========\n");
         return;
     }
     if( !head ) {
@@ -19,14 +21,19 @@ void sort_timer_lst::add_timer( util_timer* timer ) {
     else{
         add_timer(timer, head);    
     }
+
+    EMlog(LOGLEVEL_DEBUG,"===========added timer.==========\n");
 }
 
 
 
-void sort_timer_lst::adjust_timer(util_timer* timer)
-{
+void sort_timer_lst::adjust_timer(util_timer* timer){
+
+    EMlog(LOGLEVEL_DEBUG,"===========adjusting timer.=========\n");
+
     if( !timer )  {
-            return;
+        EMlog(LOGLEVEL_WARN, "===========timer null.==========\n");
+        return;
     }
     util_timer* tmp = timer->next;
     // 如果被调整的目标定时器处在链表的尾部，或者该定时器新的超时时间值仍然小于其下一个定时器的超时时间则不用调整
@@ -45,52 +52,55 @@ void sort_timer_lst::adjust_timer(util_timer* timer)
         timer->next->prev = timer->prev;
         add_timer( timer, timer->next );
     }
+    EMlog(LOGLEVEL_DEBUG,"===========adjusted timer.==========\n");
 }
 
 
 
-void sort_timer_lst::del_timer( util_timer* timer )
-    {
-        if( !timer ) {
-            return;
-        }
-        static int count;
-        printf("删除定时器 %d 连接断开了一条....\n",++count);
-        // 下面这个条件成立表示链表中只有一个定时器，即目标定时器
-        if( ( timer == head ) && ( timer == tail ) ) {
-            delete timer;
-            head = NULL;
-            tail = NULL;
-            //return;
-        }
-        /* 如果链表中至少有两个定时器，且目标定时器是链表的头节点，
-         则将链表的头节点重置为原头节点的下一个节点，然后删除目标定时器。 */
-        else if( timer == head ) {
-            head = head->next;
-            head->prev = NULL;
-            delete timer;
-        }
+void sort_timer_lst::del_timer( util_timer* timer ){
+    static int count;
+    if(count >= 99999)
+        count = 0;
+    EMlog(LOGLEVEL_DEBUG,"===========deleted timer.== %d =========\n",++count);
+    if( !timer ) {
+        return;
+    }
+    //printf("删除定时器 %d 连接断开了一条....\n",++count);
+    // 下面这个条件成立表示链表中只有一个定时器，即目标定时器
+    if( ( timer == head ) && ( timer == tail ) ) {
+        delete timer;
+        head = NULL;
+        tail = NULL;
+        //return;
+    }
+    /* 如果链表中至少有两个定时器，且目标定时器是链表的头节点，
+     则将链表的头节点重置为原头节点的下一个节点，然后删除目标定时器。 */
+    else if( timer == head ) {
+        head = head->next;
+        head->prev = NULL;
+        delete timer;
+    }
         /* 如果链表中至少有两个定时器，且目标定时器是链表的尾节点，
         则将链表的尾节点重置为原尾节点的前一个节点，然后删除目标定时器。*/
-        else if( timer == tail ) {
-            tail = tail->prev;
-            tail->next = NULL;
-            delete timer;
-        }
-        else{
-        // 如果目标定时器位于链表的中间，则把它前后的定时器串联起来，然后删除目标定时器
-            timer->prev->next = timer->next;
-            timer->next->prev = timer->prev;
-            delete timer;
-        }
+    else if( timer == tail ) {
+        tail = tail->prev;
+        tail->next = NULL;
+        delete timer;
     }
+    else{
+        // 如果目标定时器位于链表的中间，则把它前后的定时器串联起来，然后删除目标定时器
+        timer->prev->next = timer->next;
+        timer->next->prev = timer->prev;
+        delete timer;
+    }
+}
 
 
 void sort_timer_lst::tick() {
     if( !head ) {
         return;
     }
-    printf( "timer tick\n" );
+    EMlog(LOGLEVEL_DEBUG, "timer tick.\n" );
     time_t cur = time( NULL );  // 获取当前系统时间
     util_timer* tmp = head;
     // 从头节点开始依次处理每个定时器，直到遇到一个尚未到期的定时器

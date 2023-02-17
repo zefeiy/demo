@@ -51,7 +51,7 @@ void timer_handler()
 int main( int argc, char* argv[] ) {
     
     if( argc <= 1 ) {
-        printf( "usage: %s port_number\n", basename(argv[0]));
+        EMlog(LOGLEVEL_ERROR,"run as: %s port_number\n", basename(argv[0]));   //argv[0]可能带路径，用basename转换
         return 1;
     }
 
@@ -104,7 +104,7 @@ int main( int argc, char* argv[] ) {
         int number = epoll_wait( epollfd, events, MAX_EVENT_NUMBER, -1 );
         
         if ( ( number < 0 ) && ( errno != EINTR ) ) {
-            printf( "epoll failure\n" );
+            EMlog(LOGLEVEL_ERROR,"EPOLL failed.\n");
             break;
         }
 
@@ -143,31 +143,26 @@ int main( int argc, char* argv[] ) {
                 }
             }
             else if( events[i].events & ( EPOLLRDHUP | EPOLLHUP | EPOLLERR ) ){
-
+                EMlog(LOGLEVEL_DEBUG,"-------EPOLLRDHUP | EPOLLHUP | EPOLLERR--------\n");
                 users[sockfd].close_conn();  //出现异常情况，直接断开连接
-                //remove_util(users[sockfd].m_util_timer);
+                http_conn::timer_lst.del_timer(users[sockfd].m_util_timer);
             } 
             else if(events[i].events & EPOLLIN) {  //可读事件
-
+                EMlog(LOGLEVEL_DEBUG,"-------EPOLLIN-------\n\n");
                 if(users[sockfd].read()) {   //将数据全部读出
                     pool->append(users + sockfd); //向池中添加任务
-                    if(users[sockfd].m_util_timer){
-                        time_t cur = time(NULL);
-                        users[sockfd].m_util_timer->expire = cur + 2* TIMESLOT;
-                        printf("adjust timer once\n");
-                        http_conn::timer_lst.adjust_timer(users[sockfd].m_util_timer);
-                    }
                 } 
                 else {
-                    users[sockfd].close_conn();  //读失败，直接关闭连接
-                    //remove_util(users[sockfd].m_util_timer);
+                    users[sockfd].close_conn();  //读失败，直接关闭连接,并移除定时器
+                    http_conn::timer_lst.del_timer(users[sockfd].m_util_timer);
                 }
 
             }  
             else if( events[i].events & EPOLLOUT ) {   //可写事件
-
+                EMlog(LOGLEVEL_DEBUG, "-------EPOLLOUT--------\n\n");
                 if( !users[sockfd].write() ) {      //写失败，直接关闭连接
                     users[sockfd].close_conn();
+                    http_conn::timer_lst.del_timer(users[sockfd].m_util_timer);
                 }
             }
 
